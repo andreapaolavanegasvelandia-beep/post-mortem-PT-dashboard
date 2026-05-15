@@ -91,6 +91,22 @@ tr:hover td{background:rgba(255,255,255,.025);}
     </div>
   </div>
 
+  <div class="card" style="margin-bottom:14px">
+    <div class="ct" id="fcst0-ct">Real LM vs FCST Lag0 (Informe de Ruteo) — W14</div>
+    <div style="overflow-x:auto">
+    <table id="fcst0-table">
+      <thead><tr>
+        <th>SVC</th>
+        <th class="r">Real LM</th>
+        <th class="r">FCST LM</th>
+        <th class="r">Desviación</th>
+        <th class="r">% Desv</th>
+      </tr></thead>
+      <tbody id="fcst0-tbody"></tbody>
+    </table>
+    </div>
+  </div>
+
   <div class="card">
     <div class="ct" id="vol-ct">Volumen por SVC — W14</div>
     <div style="font-size:10px;color:#7a8499;margin-bottom:8px;line-height:1.5;">
@@ -392,12 +408,14 @@ function renderFMTable(){
   const prevW = W==='W19'?'W18':W==='W18'?'W17':W==='W17'?'W16':W==='W16'?'W15':'W14';
   const ppk=wKey('p').replace(W.slice(1),prevW.slice(1)), prk=wKey('r').replace(W.slice(1),prevW.slice(1));
   const cpk=wKey('p'), crk=wKey('r');
-  document.getElementById('fm-tbl-ct').textContent=T+' — tabla de adherencia';
-  const thead = document.querySelector('#tbFM').closest('table').querySelector('thead tr');
+  const fmct=document.getElementById('fm-tbl-ct');
+  if(fmct) fmct.textContent=T+' — tabla de adherencia';
+  const thead = document.querySelector('#tbFM') ? document.querySelector('#tbFM').closest('table').querySelector('thead tr') : null;
   if(thead){
     thead.innerHTML='<th>Facility</th><th class="r">Plan '+prevW+'</th><th class="r">Real '+prevW+'</th><th class="r">Adh '+prevW+'</th><th class="r">Plan '+W+'</th><th class="r">Real '+W+'</th><th class="r">Adh '+W+'</th>';
   }
-  document.getElementById('tbFM').innerHTML=FM[T].map(r=>{
+  const tbFM=document.getElementById('tbFM');
+  if(tbFM) tbFM.innerHTML=FM[T].map(r=>{
     return'<tr><td><strong>'+r.f+'</strong></td><td class="r">'+fmt(r[ppk])+'</td><td class="r">'+fmt(r[prk])+'</td><td class="r">'+badge(r[ppk],r[prk])+'</td><td class="r">'+fmt(r[cpk])+'</td><td class="r">'+(r[crk]===null?'<span style="color:#4b5563;font-size:11px">pend.</span>':fmt(r[crk]))+'</td><td class="r">'+(r[crk]===null?'—':badge(r[cpk],r[crk]))+'</td></tr>';
   }).join('');
 }
@@ -467,6 +485,7 @@ function renderReservas(){
 }
 
 function setWeek(w){W=w;['W14','W15','W16','W17','W18','W19'].forEach(x=>document.getElementById('b'+x).classList.toggle('on',w===x));renderAll();renderInsights();}
+function renderAll(){renderKPIs();renderReservas();renderFCST0();renderVol();renderFlota();renderFlotaTable();renderResumen();renderFMChart();renderFMTable();}
 function setTipo(t){T=t;['NHR','Turbo','LV','SV'].forEach(x=>document.getElementById('t'+x).classList.toggle('on',x===t));renderFMChart();renderFMTable();}
 function renderResumen(){
   const svcs=['SAN1','SBO1','SVA1','SAT1','SBL1','SBY1','SCI1','SSA1','SRI1','STI1'];
@@ -504,7 +523,116 @@ function renderResumen(){
   document.getElementById('tbResumen').innerHTML=rows.join('');
   document.getElementById('resumen-ct').textContent='Resumen operativo por SVC — '+W;
 }
-function renderAll(){renderKPIs();renderReservas();renderVol();renderFlota();renderFlotaTable();renderResumen();renderFMChart();renderFMTable();renderInsights();}
+const FCST0={
+  W14:[
+    {s:'SAN1',r:28250,f:30924},
+    {s:'SBO1',r:55488,f:60131},
+    {s:'SVA1',r:16573,f:17726},
+    {s:'SAT1',r:10750,f:11270},
+    {s:'SBL1',r:7803,f:7541},
+    {s:'SBY1',r:5927,f:5887},
+    {s:'SCI1',r:16676,f:16409},
+    {s:'SSA1',r:8145,f:7974},
+    {s:'SRI1',r:6634,f:8544},
+    {s:'STI1',r:4267,f:5768},
+  ],
+  W15:[
+    {s:'SAN1',r:41947,f:47156},
+    {s:'SBO1',r:93177,f:95856},
+    {s:'SVA1',r:26985,f:27702},
+    {s:'SAT1',r:15598,f:15333},
+    {s:'SBL1',r:11321,f:10923},
+    {s:'SBY1',r:9423,f:9912},
+    {s:'SCI1',r:20958,f:24466},
+    {s:'SSA1',r:12645,f:16949},
+    {s:'SRI1',r:11214,f:11893},
+    {s:'STI1',r:8333,f:8483},
+  ],
+  W16:[
+    {s:'SAN1',r:37957,f:39914},
+    {s:'SBO1',r:82344,f:85219},
+    {s:'SVA1',r:23859,f:22608},
+    {s:'SAT1',r:13734,f:13777},
+    {s:'SBL1',r:10387,f:9947},
+    {s:'SBY1',r:8814,f:9009},
+    {s:'SCI1',r:22209,f:21904},
+    {s:'SSA1',r:12607,f:13965},
+    {s:'SRI1',r:9564,f:9688},
+    {s:'STI1',r:7339,f:7387},
+  ],
+  W17:[
+    {s:'SAN1',r:36946,f:37112},
+    {s:'SBO1',r:80633,f:82477},
+    {s:'SVA1',r:24358,f:23723},
+    {s:'SAT1',r:13894,f:13643},
+    {s:'SBL1',r:10175,f:9963},
+    {s:'SBY1',r:7846,f:7521},
+    {s:'SCI1',r:21382,f:21971},
+    {s:'SSA1',r:14163,f:13394},
+    {s:'SRI1',r:9529,f:9702},
+    {s:'STI1',r:6702,f:6641},
+  ],
+  W18:[
+    {s:'SAN1',r:32169,f:30547},
+    {s:'SBO1',r:66149,f:68474},
+    {s:'SVA1',r:20827,f:20642},
+    {s:'SAT1',r:13331,f:13284},
+    {s:'SBL1',r:9590,f:9413},
+    {s:'SBY1',r:6293,f:6062},
+    {s:'SCI1',r:19520,f:18928},
+    {s:'SSA1',r:10777,f:10718},
+    {s:'SRI1',r:8304,f:7841},
+    {s:'STI1',r:6399,f:5830},
+  ],
+  W19:[
+    {s:'SAN1',r:47056,f:44256},
+    {s:'SBO1',r:104714,f:100755},
+    {s:'SVA1',r:31578,f:29728},
+    {s:'SAT1',r:16639,f:16398},
+    {s:'SBL1',r:11980,f:11745},
+    {s:'SBY1',r:9827,f:10557},
+    {s:'SCI1',r:26421,f:26525},
+    {s:'SSA1',r:15020,f:14935},
+    {s:'SRI1',r:12219,f:11382},
+    {s:'STI1',r:9423,f:9861},
+  ],
+};
+function renderFCST0(){
+  const data=FCST0[W];
+  if(!data)return;
+  document.getElementById('fcst0-ct').textContent='Real LM vs FCST Lag0 (Informe de Ruteo) — '+W;
+  let tr=0,tf=0;
+  const rows=data.map(d=>{
+    tr+=d.r; tf+=d.f;
+    const desv=d.r-d.f;
+    const pct=d.f>0?Math.round((d.r-d.f)/d.f*100):null;
+    let cls='',badge='';
+    if(pct!==null){
+      if(Math.abs(pct)<=5){cls='bg';badge='badge bg';}
+      else if(Math.abs(pct)<=10){cls='by';badge='badge by';}
+      else{cls='br';badge='badge br';}
+    }
+    const sign=desv>=0?'+':'';
+    return`<tr>
+      <td><strong>${d.s}</strong></td>
+      <td class="r">${d.r.toLocaleString('es-MX')}</td>
+      <td class="r">${d.f.toLocaleString('es-MX')}</td>
+      <td class="r" style="color:${desv>=0?'#22c55e':'#ef4444'}">${sign}${desv.toLocaleString('es-MX')}</td>
+      <td class="r">${pct!==null?`<span class="${badge}">${sign}${pct}%</span>`:'—'}</td>
+    </tr>`;
+  });
+  const totDesv=tr-tf;
+  const totPct=tf>0?Math.round((tr-tf)/tf*100):null;
+  const sign=totDesv>=0?'+':'';
+  rows.push(`<tr style="border-top:2px solid #2a3347;font-weight:700">
+    <td>TOTAL</td>
+    <td class="r">${tr.toLocaleString('es-MX')}</td>
+    <td class="r">${tf.toLocaleString('es-MX')}</td>
+    <td class="r" style="color:${totDesv>=0?'#22c55e':'#ef4444'}">${sign}${totDesv.toLocaleString('es-MX')}</td>
+    <td class="r">${totPct!==null?`<span class="badge ${Math.abs(totPct)<=5?'bg':Math.abs(totPct)<=10?'by':'br'}">${sign}${totPct}%</span>`:'—'}</td>
+  </tr>`);
+  document.getElementById('fcst0-tbody').innerHTML=rows.join('');
+}
 renderAll();
 
 
