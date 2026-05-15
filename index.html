@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Post Mortem — Last Mile & FM Confelado</title>
+<title>Post Mortem PT — Last Mile & FM</title>
 <style>
 :root{--bg:#0d0f14;--surf:#161b24;--surf2:#1e2533;--brd:#2a3347;--tx:#e4e8f0;--mu:#7a8499;--blue:#3b82f6;--blue-d:#1d3a6e;--green:#22c55e;--green-d:#14532d;--yellow:#eab308;--yellow-d:#713f12;--red:#ef4444;--red-d:#7f1d1d;--gray:#6b7280;--gray-d:#1f2937;--r:8px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -52,7 +52,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 <body>
 <header>
   <div>
-    <div class="hdr-t">Post Mortem — Last Mile &amp; FM Confelado</div>
+    <div class="hdr-t">Post Mortem PT — Last Mile &amp; FM</div>
     <div class="hdr-s">W14: 30-mar–05-abr · W15: 06–12-abr · W16: 13–19-abr · W17: 20–26-abr · W18: 27-abr–03-may · W19: 04–10-may 2026</div>
   </div>
   <div class="wbtns">
@@ -127,6 +127,8 @@ tr:hover td{background:rgba(255,255,255,.025);}
         <th class="r">Lag7 / Real %</th>
         <th class="r">PT / Real %</th>
         <th class="r">Plan PT / Fcst %</th>
+        <th class="r">Fcst Lag14</th>
+        <th class="r">Lag14 / Real %</th>
         <th class="r">Estado</th>
       </tr></thead>
       <tbody id="tbResumen"></tbody>
@@ -225,56 +227,60 @@ const FCST={
   W18:[46124,77668,24206,10925,8211,6772,20580,11145,18792,7137],
   W19:[56774,96716,30125,11506,8754,9652,26091,12694,21779,10462]
 };
+const FCST14={
+  W16:[30207,67368,20776,9645,7024,6287,17897,8665,7293,6662],
+  W17:[44195,92617,28265,12968,9517,8842,24589,13708,10834,9413],
+  W18:[38791,83375,25317,11291,8278,7991,22345,11711,9486,8512],
+  W19:[39239,85138,25690,11364,8271,7994,22348,11780,9618,8523]
+};
 const FLOTA=[
-  {s:'SBO1', p14:780,  r14:847,  p15:1333, r15:1379, p16:1289, r16:1256, p17:1337, r17:1176, p18:942,  r18:999,  p19:1336, r19:1448},
-  {s:'SAN1', p14:274,  r14:452,  p15:414,  r15:632,  p16:419,  r16:580,  p17:393,  r17:533,  p18:429,  r18:462,  p19:413,  r19:643},
-  {s:'SVA1', p14:448,  r14:247,  p15:786,  r15:430,  p16:764,  r16:350,  p17:786,  r17:367,  p18:306,  r18:283,  p19:839,  r19:458},
-  {s:'SRI1', p14:317,  r14:114,  p15:473,  r15:152,  p16:469,  r16:123,  p17:477,  r17:122,  p18:96,   r18:98,   p19:480,  r19:142},
+  {s:'SBO1', p14:749,  r14:847,  p15:946,  r15:1379, p16:979,  r16:1256, p17:974,  r17:1176, p18:942,  r18:999,  p19:1121, r19:1448},
+  {s:'SAN1', p14:423,  r14:452,  p15:510,  r15:632,  p16:466,  r16:580,  p17:476,  r17:533,  p18:429,  r18:462,  p19:586,  r19:643},
+  {s:'SVA1', p14:251,  r14:247,  p15:352,  r15:430,  p16:345,  r16:350,  p17:348,  r17:367,  p18:306,  r18:283,  p19:410,  r19:458},
+  {s:'SRI1', p14:88,   r14:114,  p15:111,  r15:152,  p16:105,  r16:123,  p17:108,  r17:122,  p18:96,   r18:98,   p19:136,  r19:142},
   {s:'ERI3', p14:62,   r14:62,   p15:84,   r15:84,   p16:0,    r16:0,    p17:0,    r17:0,    p18:0,    r18:0,    p19:0,    r19:0},
   {s:'ERI4', p14:47,   r14:47,   p15:64,   r15:64,   p16:0,    r16:0,    p17:0,    r17:0,    p18:0,    r18:0,    p19:0,    r19:0},
-  {s:'SCI1', p14:480,  r14:225,  p15:712,  r15:339,  p16:701,  r16:313,  p17:711,  r17:307,  p18:284,  r18:269,  p19:822,  r19:379},
-  {s:'SAT1', p14:326,  r14:130,  p15:488,  r15:191,  p16:492,  r16:174,  p17:487,  r17:167,  p18:152,  r18:162,  p19:488,  r19:200},
-  {s:'SSA1', p14:377,  r14:107,  p15:745,  r15:230,  p16:797,  r16:174,  p17:745,  r17:185,  p18:122,  r18:141,  p19:763,  r19:194},
-  {s:'SBL1', p14:307,  r14:105,  p15:471,  r15:141,  p16:457,  r16:130,  p17:464,  r17:129,  p18:130,  r18:117,  p19:479,  r19:146},
-  {s:'SBY1', p14:302,  r14:80,   p15:463,  r15:129,  p16:447,  r16:122,  p17:449,  r17:104,  p18:90,   r18:82,   p19:462,  r19:134},
-  {s:'STI1', p14:303,  r14:77,   p15:453,  r15:112,  p16:443,  r16:100,  p17:452,  r17:88,   p18:81,   r18:80,   p19:460,  r19:125},
+  {s:'SCI1', p14:234,  r14:225,  p15:310,  r15:339,  p16:305,  r16:313,  p17:308,  r17:307,  p18:284,  r18:269,  p19:341,  r19:379},
+  {s:'SAT1', p14:118,  r14:130,  p15:161,  r15:191,  p16:152,  r16:174,  p17:157,  r17:167,  p18:152,  r18:162,  p19:164,  r19:200},
+  {s:'SSA1', p14:87,   r14:107,  p15:134,  r15:230,  p16:132,  r16:174,  p17:136,  r17:185,  p18:122,  r18:141,  p19:147,  r19:194},
+  {s:'SBL1', p14:100,  r14:105,  p15:133,  r15:141,  p16:122,  r16:130,  p17:131,  r17:129,  p18:130,  r18:117,  p19:132,  r19:146},
+  {s:'SBY1', p14:80,   r14:80,   p15:100,  r15:129,  p16:102,  r16:122,  p17:102,  r17:104,  p18:90,   r18:82,   p19:118,  r19:134},
+  {s:'STI1', p14:72,   r14:77,   p15:91,   r15:112,  p16:90,   r16:100,  p17:92,   r17:88,   p18:81,   r18:80,   p19:108,  r19:125},
 ];
 const FM={
   NHR:[
-    {f:'COXBG1',p14:158,r14:184,p15:234,r15:313,p16:215,r16:185,p17:218,r17:233,p18:189,r18:210},
-    {f:'COXME1',p14:43, r14:49, p15:69, r15:82, p16:63, r16:null,p17:64, r17:80, p18:53, r18:67},
-    {f:'COXCA1',p14:12, r14:19, p15:17, r15:35, p16:15, r16:null,p17:15, r17:26, p18:13, r18:24},
-    {f:'COXBU1',p14:16, r14:8,  p15:25, r15:12, p16:null,r16:null,p17:null,r17:12,p18:null,r18:10},
-    {f:'COXPE1',p14:14, r14:8,  p15:21, r15:13, p16:null,r16:null,p17:null,r17:12,p18:null,r18:10},
-    {f:'COXIB1',p14:3,  r14:4,  p15:5,  r15:5,  p16:null,r16:null,p17:null,r17:5, p18:null,r18:5},
-    {f:'COXTU1',p14:3,  r14:3,  p15:5,  r15:5,  p16:null,r16:null,p17:null,r17:5, p18:null,r18:4},
-    {f:'COCU02',p14:null,r14:27,p15:null,r15:26,p16:null,r16:null,p17:null,r17:55,p18:null,r18:39},
-    {f:'COXCU1',p14:null,r14:8, p15:null,r15:12,p16:null,r16:null,p17:null,r17:14,p18:null,r18:12},
-    {f:'COXBQ1',p14:null,r14:0, p15:null,r15:17,p16:null,r16:null,p17:null,r17:27,p18:null,r18:20},
+    {f:'COXBG1',p14:158,r14:184,p15:234,r15:313,p16:215,r16:185,p17:218,r17:233,p18:189,r18:210,p19:262,r19:null},
+    {f:'COXME1',p14:43, r14:49, p15:69, r15:82, p16:63, r16:null,p17:64, r17:80, p18:53, r18:67, p19:70, r19:null},
+    {f:'COXCA1',p14:12, r14:19, p15:17, r15:35, p16:15, r16:null,p17:15, r17:26, p18:13, r18:24, p19:18, r19:null},
+    {f:'COXBU1',p14:16, r14:8,  p15:25, r15:12, p16:24, r16:null,p17:24, r17:12, p18:20, r18:10, p19:26, r19:null},
+    {f:'COXPE1',p14:14, r14:8,  p15:21, r15:13, p16:20, r16:null,p17:20, r17:12, p18:17, r18:10, p19:22, r19:null},
+    {f:'COXIB1',p14:3,  r14:4,  p15:5,  r15:5,  p16:5,  r16:null,p17:5,  r17:5,  p18:4,  r18:5,  p19:5,  r19:null},
+    {f:'COXTU1',p14:3,  r14:3,  p15:5,  r15:5,  p16:5,  r16:null,p17:5,  r17:5,  p18:4,  r18:4,  p19:5,  r19:null},
+    {f:'COCU02',p14:null,r14:27,p15:null,r15:26,p16:null,r16:22,  p17:null,r17:55,p18:null,r18:39, p19:null,r19:null},
+    {f:'COXCU1',p14:null,r14:8, p15:null,r15:12,p16:null,r16:null,p17:null,r17:14,p18:null,r18:12, p19:null,r19:null},
+    {f:'COXBQ1',p14:null,r14:0, p15:null,r15:17,p16:null,r16:null,p17:null,r17:27,p18:null,r18:20, p19:null,r19:null},
   ],
   Turbo:[
-    {f:'COXBG1',p14:5,  r14:14, p15:7,  r15:32, p16:7,  r16:null,p17:7,  r17:28, p18:6,  r18:23},
-    {f:'COXME1',p14:3,  r14:4,  p15:5,  r15:12, p16:5,  r16:null,p17:5,  r17:8,  p18:4,  r18:5},
-    {f:'COXCA1',p14:4,  r14:3,  p15:6,  r15:5,  p16:6,  r16:null,p17:6,  r17:6,  p18:5,  r18:6},
-    {f:'COXBU1',p14:0,  r14:8,  p15:0,  r15:15, p16:null,r16:null,p17:null,r17:10,p18:null,r18:9},
-    {f:'COXPE1',p14:3,  r14:9,  p15:5,  r15:14, p16:5,  r16:null,p17:5,  r17:13, p18:4,  r18:12},
-    {f:'COCU02',p14:null,r14:22,p15:null,r15:28,p16:null,r16:null,p17:null,r17:41,p18:null,r18:36},
+    {f:'COXBG1',p14:5,  r14:14, p15:7,  r15:32, p16:7,  r16:12,  p17:7,  r17:28, p18:6,  r18:23, p19:7,  r19:3},
+    {f:'COXME1',p14:3,  r14:4,  p15:5,  r15:12, p16:5,  r16:4,   p17:5,  r17:8,  p18:4,  r18:5,  p19:5,  r19:1},
+    {f:'COXCA1',p14:4,  r14:3,  p15:6,  r15:5,  p16:6,  r16:null,p17:6,  r17:6,  p18:5,  r18:6,  p19:6,  r19:5},
+    {f:'COXBU1',p14:0,  r14:8,  p15:0,  r15:15, p16:0,  r16:3,   p17:0,  r17:10, p18:0,  r18:9,  p19:0,  r19:6},
+    {f:'COXPE1',p14:3,  r14:9,  p15:5,  r15:14, p16:5,  r16:null,p17:5,  r17:13, p18:4,  r18:12, p19:5,  r19:3},
+    {f:'COCU02',p14:null,r14:22,p15:null,r15:28,p16:null,r16:4,   p17:null,r17:41,p18:null,r18:36, p19:null,r19:14},
   ],
   LV:[
-    {f:'COXBG1',p14:87, r14:69, p15:139,r15:104,p16:139,r16:null,p17:139,r17:138,p18:113,r18:102},
-    {f:'COXME1',p14:12, r14:6,  p15:20, r15:12, p16:24, r16:null,p17:24, r17:6,  p18:19, r18:6},
-    {f:'COXCA1',p14:12, r14:7,  p15:20, r15:12, p16:24, r16:null,p17:24, r17:16, p18:19, r18:12},
-    {f:'COXBU1',p14:null,r14:null,p15:null,r15:null,p16:null,r16:null,p17:null,r17:15,p18:null,r18:12},
-    {f:'COXIB1',p14:null,r14:null,p15:null,r15:null,p16:null,r16:null,p17:null,r17:11,p18:null,r18:9},
-    {f:'COXCU1',p14:null,r14:null,p15:null,r15:null,p16:null,r16:null,p17:null,r17:2, p18:null,r18:3},
+    {f:'COXBG1',p14:87, r14:69, p15:139,r15:104,p16:139,r16:92,  p17:139,r17:138,p18:113,r18:102,p19:139,r19:37},
+    {f:'COXME1',p14:14, r14:6,  p15:24, r15:12, p16:24, r16:8,   p17:24, r17:6,  p18:19, r18:6,  p19:24, r19:2},
+    {f:'COXCA1',p14:14, r14:7,  p15:24, r15:12, p16:24, r16:null,p17:24, r17:16, p18:19, r18:12, p19:24, r19:2},
   ],
   SV:[
-    {f:'COXBG1',p14:6,  r14:3,  p15:10, r15:5,  p16:10, r16:null,p17:10, r17:null,p18:8,  r18:null},
-    {f:'COXCA1',p14:2,  r14:2,  p15:4,  r15:3,  p16:4,  r16:null,p17:4,  r17:null,p18:3,  r18:null},
-    {f:'COXBU1',p14:9,  r14:9,  p15:15, r15:15, p16:19, r16:null,p17:19, r17:null,p18:15, r18:null},
-    {f:'COXIB1',p14:7,  r14:6,  p15:11, r15:11, p16:10, r16:null,p17:10, r17:null,p18:8,  r18:null},
-    {f:'COXCU1',p14:null,r14:3, p15:null,r15:3,  p16:null,r16:null,p17:null,r17:null,p18:null,r18:null},
-    {f:'COXVI1',p14:null,r14:5, p15:null,r15:5,  p16:null,r16:null,p17:null,r17:null,p18:null,r18:6},
+    {f:'COXBG1',p14:6,  r14:3,  p15:10, r15:5,  p16:10, r16:null,p17:10, r17:null,p18:8,  r18:null,p19:10, r19:null},
+    {f:'COXCA1',p14:2,  r14:2,  p15:4,  r15:3,  p16:4,  r16:null,p17:4,  r17:null,p18:3,  r18:null,p19:4,  r19:null},
+    {f:'COXBU1',p14:11, r14:9,  p15:19, r15:15, p16:19, r16:null,p17:19, r17:null,p18:15, r18:null,p19:19, r19:null},
+    {f:'COXIB1',p14:6,  r14:6,  p15:10, r15:11, p16:10, r16:null,p17:10, r17:null,p18:8,  r18:null,p19:10, r19:null},
+    {f:'COXCU1',p14:null,r14:3, p15:null,r15:3,  p16:null,r16:null,p17:null,r17:null,p18:null,r18:3, p19:null,r19:4},
+    {f:'COXVI1',p14:null,r14:5, p15:null,r15:5,  p16:null,r16:4,  p17:null,r17:null,p18:null,r18:1, p19:null,r19:4},
+    {f:'COXBQ1',p14:null,r14:null,p15:null,r15:null,p16:null,r16:null,p17:null,r17:null,p18:null,r18:2,p19:null,r19:9},
   ],
 };
 
@@ -466,9 +472,11 @@ function renderResumen(){
   const svcs=['SAN1','SBO1','SVA1','SAT1','SBL1','SBY1','SCI1','SSA1','SRI1','STI1'];
   const rows=svcs.map((svc,i)=>{
     const g=VOL[W].g[i], d=VOL[W].d[i], f=FCST[W][i];
+    const f14=(FCST14[W])?FCST14[W][i]:null;
     const lag7pct  = (f>0&&d>0)?Math.round(f/d*100):null;
     const ptReal   = (g>0&&d>0)?Math.round(g/d*100):null;
     const grafFcst = (g>0&&f>0)?Math.round(g/f*100):null;
+    const lag14pct = (f14&&f14>0&&d>0)?Math.round(f14/d*100):null;
     function pctBadge(v){
       if(v===null)return'—';
       if(v>=85&&v<=115)return'<span class="badge bg">'+v+'%</span>';
@@ -488,6 +496,8 @@ function renderResumen(){
       +'<td class="r">'+pctBadge(lag7pct)+'</td>'
       +'<td class="r">'+pctBadge(ptReal)+'</td>'
       +'<td class="r">'+pctBadge(grafFcst)+'</td>'
+      +'<td class="r">'+(f14?f14.toLocaleString('es-MX'):'—')+'</td>'
+      +'<td class="r">'+pctBadge(lag14pct)+'</td>'
       +'<td class="r">'+estado+'</td>'
       +'</tr>';
   });
